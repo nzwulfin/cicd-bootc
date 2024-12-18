@@ -28,6 +28,30 @@ Token username as *RHT_REG_SVCUSER* (has a "|" character in the name)
 
 Password as *RHT_REG_SVCPASS*
 
+#### Possible runner disk space issue
+
+GitHub runners come with roughly 14GB of free disk space. Since bootc images are complete operating systems, the job can take a lot of scrach space duing the build process.
+
+@vrothberg rerported this issue with a different bootc based GitHub Action build:
+
+    the infamous "no space left on device" issue building my fedora-bootc-workstation image which brought me to https://github.com/orgs/community/discussions/25678.
+
+Based on that discussion and some back and forth on issue #2 in this repo, we have a version of the fix that will work with the containerized approach here. If your build starts failing due to space issues on the runner, you can mount /opt from the host read / write in the container and then remove the tool cache.
+
+Change the options in the container specification in the job:
+
+      options: --privileged -v /opt:/host/opt:rw
+
+Add the following step as the first step in the job (before the checkout):
+
+      - name: Free up disk space on runner
+        run: |
+          rm -rf /host/opt/hostedtoolcache
+          df -Th
+
+On a test build, this removed about 8GB of tools on the host. Since this job runs in a nested UBI container which needs all of the tools made available in it, we aren't using any of the tools in the host cache.
+
 ### Crrent build status
+You can add badges that track the latest outcomes of workflows using links like these below. These let you see the status at a glance without needing to look at the Actions tab.
 [![Fedora 40 bootc image workflow](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_fedora_bootc.yml/badge.svg)](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_fedora_bootc.yml)
 [![RHEL 9 bootc image workflow](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_rhel_bootc.yml/badge.svg)](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_rhel_bootc.yml)
