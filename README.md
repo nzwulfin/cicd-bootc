@@ -1,5 +1,5 @@
 # cicd-bootc
-Demo repo for Github Actions based builds of bootc images
+This Demo repo for Github Actions based builds of bootc images was designed for and referenced in the [Jumpstart GitOps with image mode](https://www.redhat.com/en/blog/jumpstart-gitops-image-mode) blog post on redhat.com. This branch will remain in synv with that post, while the `main` branch of this repo evolves.
 
 For RHEL, this example uses an activation key to get access to a subscription and a service account to get access to the terms based registry images. These are set up as secrets and variables scoped to the repo.You can easily change the names of these in the repo and the workflow file to suit your own standards.
 
