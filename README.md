@@ -53,5 +53,6 @@ On a test build, this removed about 8GB of tools on the host. Since this job run
 
 ### Crrent build status
 You can add badges that track the latest outcomes of workflows using links like these below. These let you see the status at a glance without needing to look at the Actions tab.
+
 [![Fedora 40 bootc image workflow](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_fedora_bootc.yml/badge.svg)](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_fedora_bootc.yml)
 [![RHEL 9 bootc image workflow](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_rhel_bootc.yml/badge.svg)](https://github.com/nzwulfin/cicd-bootc/actions/workflows/build_rhel_bootc.yml)
