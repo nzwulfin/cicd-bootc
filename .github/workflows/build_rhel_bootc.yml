@@ -9,16 +9,24 @@ on:
 
 jobs:
   subs:
+    strategy:
+      matrix:
+        flavor: [el9, el10]
     name: Build RHEL bootc image with repo access
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: rhel9-cicd-bootc
+      IMAGE_NAME: rhel-cicd-bootc
       REGISTRY: ghcr.io/nzwulfin
     container:
       image: registry.access.redhat.com/ubi9/ubi
       options: --privileged
 
     steps:
+      #- name: Free up disk space on runner
+        #run: |
+          #rm -rf /host/opt/hostedtoolcache
+          #df -Th
+
       - name: Clone the repository
         uses: actions/checkout@v4
 
@@ -53,9 +61,9 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }}
+          tags: ${{ matrix.flavor }} ${{ matrix.flavor }}-latest ${{ matrix.flavor }}-${{ github.sha }} 
           containerfiles: |
-            ./rhel/Containerfile
+            ./rhel/Containerfile.${{ matrix.flavor }}
 
       - name: Log in to the GitHub Container registry
         uses: redhat-actions/podman-login@v1
