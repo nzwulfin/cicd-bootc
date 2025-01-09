@@ -19,7 +19,7 @@ Organization ID as *RHT_ORGID*
 Activation key as *RHT_ACT_KEY*
 
 ## Getting access to the base image
-Ublike UBI, the bootc base image does require an account to access since this is a full RHEL host. To log into the registry during a pipeline build or other automation, you can [create a regitry service account}(https://access.redhat.com/RegistryAuthentication#registry-service-accounts-for-shared-environments-4) in tne customer portal.
+Ublike UBI, the bootc base image does require an account to access since this is a full RHEL host. To log into the registry during a pipeline build or other automation, you can [create a regitry service account](https://access.redhat.com/RegistryAuthentication#registry-service-accounts-for-shared-environments-4) in tne customer portal.
 
 ### Token Information
 Create 1 var and 1 secret in the repo
