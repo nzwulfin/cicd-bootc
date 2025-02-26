@@ -60,7 +60,7 @@ jobs:
         run: dnf -y install podman buildah skopeo
 
       - name: Access a subscription via activation key
-        env:
+        #env:
           # SMDEV_CONTAINER_OFF: 1
           # orgid: ${{ secrets.RHT_ORGID }}
           # activation_key: ${{ secrets.RHT_ACT_KEY }}
