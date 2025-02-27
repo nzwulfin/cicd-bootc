@@ -30,18 +30,18 @@ jobs:
       # Disable Subscription Manager container check
       SMDEV_CONTAINER_OFF: 1
   
-  # Secrets
-  # Subscription Manager
-  # RHT_ORGID: ""
-  # RHT_ACT_KEY: ""
+      # Secrets managed at the platform level
+      # Subscription Manager
+      # RHT_ORGID: ""
+      # RHT_ACT_KEY: ""
 
-  # Source Credentials
-  # SOURCE_REGISTRY_USER: ""
-  # SOURCE_REGISTRY_PASSWORD: ""
+      # Source Credentials
+      # SOURCE_REGISTRY_USER: ""
+      # SOURCE_REGISTRY_PASSWORD: ""
 
-  # Destination Credentials
-  # DEST_REGISTRY_USER: ""
-  # DEST_REGISTRY_PASSWORD: ""
+      # Destination Credentials override for the GitHub Action particulars
+      DEST_REGISTRY_USER: ${{ github.actor }}
+      DEST_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
     container:
       image: registry.access.redhat.com/ubi9/ubi
@@ -60,10 +60,6 @@ jobs:
         run: dnf -y install podman buildah skopeo
 
       - name: Access a subscription via activation key
-        #env:
-          # SMDEV_CONTAINER_OFF: 1
-          # orgid: ${{ secrets.RHT_ORGID }}
-          # activation_key: ${{ secrets.RHT_ACT_KEY }}
         run: subscription-manager register --org=${{ secrets.RHT_ORGID }} --activationkey=${{ secrets.RHT_ACT_KEY }}
       
       # workaround for https://github.com/redhat-actions/podman-login/issues/42 since the docker config from the host doesn't come up to the container
@@ -78,8 +74,8 @@ jobs:
         uses: redhat-actions/podman-login@v1
         with:
           registry: ${{ env.SOURCE_REGISTRY_HOST }}
-          username: ${{ secrets.RHT_REG_SVCUSER }}
-          password: ${{ secrets.RHT_REG_SVCPASS }}
+          username: ${{ secrets.SOURCE_REGISTRY_USER }}
+          password: ${{ secrets.SOURCE_REGISTRY_PASSWORD }}
           auth_file_path: /run/containers/0/auth.json
       
       - name: Use buildah bud to create the image
@@ -95,8 +91,8 @@ jobs:
         uses: redhat-actions/podman-login@v1
         with:
           registry: ${{ env.DEST_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ env.DEST_REGISTRY_USER }}
+          password: ${{ env.DEST_REGISTRY_PASSWORD }}
           auth_file_path: /run/containers/0/auth.json
 
       - name: Push to GitHub Container Repository
@@ -108,6 +104,4 @@ jobs:
           registry: ${{ env.DEST_REGISTRY }}
 
       - name: Clean up the subscription
-        #env:
-        #  SMDEV_CONTAINER_OFF: 1
         run: subscription-manager unregister
