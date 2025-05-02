@@ -8,15 +8,43 @@ on:
       - main
 
 jobs:
-  subs:
+  rhel-bootc-image-build:
     name: Build RHEL bootc image with repo access
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: rhel9-cicd-bootc
-      REGISTRY: ghcr.io/nzwulfin
+      # Disable Subscription Manager container passthrough
+      SMDEV_CONTAINER_OFF: 1
+      # Subscription Manager credentials - uses repository secrets
+      # RHT_ORGID: "${{ secrets.RHT_ORGID }}"
+      # RHT_ACT_KEY: "${{ secrets.RHT_ACT_KEY }}"
+      
+      # Source registry for base image
+      SOURCE_REGISTRY_HOST: "registry.redhat.io"
+      # Source credentials - uses repository secrets
+      # SOURCE_REGISTRY_USER: "${{ secrets.RHT_REG_SVCUSER }}"
+      # SOURCE_REGISTRY_PASSWORD: "${{ secrets.RHT_REG_SVCPASS }}"
+
+      # Containerfile to build
+      CONTAINERFILE: Containerfile
+
+      # Destination image namespace and name (eg: myrepo/myimage)
+      DEST_IMAGE: "${{ github.actor }}/${{github.event.repository.name}}"
+
+      # List of tags to publish
+      TAGLIST: latest ${{ github.sha }} ${{ github.ref_name }}
+
+      # Destination registry for built images
+      DEST_REGISTRY_HOST: "ghcr.io"
+      # Destination credentials - uses platform variables and secrets
+      # DEST_REGISTRY_USER: "${{ github.actor }}"
+      # DEST_REGISTRY_PASSWORD: "${{ secrets.GITHUB_TOKEN }}"
+
     container:
       image: registry.access.redhat.com/ubi9/ubi
       options: --privileged
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Clone the repository
@@ -26,12 +54,8 @@ jobs:
         run: dnf -y install podman buildah skopeo
 
       - name: Access a subscription via activation key
-        env:
-          SMDEV_CONTAINER_OFF: 1
-          orgid: ${{ secrets.RHT_ORGID }}
-          activation_key: ${{ secrets.RHT_ACT_KEY }}
-        run: subscription-manager register --org=$orgid --activationkey=$activation_key
-      
+        run: subscription-manager register --org=${{ secrets.RHT_ORGID }} --activationkey=${{ secrets.RHT_ACT_KEY }}
+
       # workaround for https://github.com/redhat-actions/podman-login/issues/42 since the docker config from the host doesn't come up to the container
       - name: Workaround open podman-login action issue
         env:
@@ -39,28 +63,27 @@ jobs:
         run: |
           mkdir -p $HOME/.docker
           echo $auth > $HOME/.docker/config.json
-      
+
       - name: Log in to the RHT terms based registry
         uses: redhat-actions/podman-login@v1
         with:
-          registry: registry.redhat.io
+          registry: ${{ env.SOURCE_REGISTRY_HOST }}
           username: ${{ secrets.RHT_REG_SVCUSER }}
           password: ${{ secrets.RHT_REG_SVCPASS }}
           auth_file_path: /run/containers/0/auth.json
-      
+
       - name: Use buildah bud to create the image
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-          image: ${{ env.IMAGE_NAME }}
-          tags: latest ${{ github.sha }}
-          containerfiles: |
-            ./rhel/Containerfile
+          image: ${{ env.DEST_IMAGE }}
+          tags: ${{ env.TAGLIST }}
+          containerfiles: ${{ env.CONTAINERFILE }}
 
       - name: Log in to the GitHub Container registry
         uses: redhat-actions/podman-login@v1
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ env.DEST_REGISTRY_HOST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           auth_file_path: /run/containers/0/auth.json
@@ -71,9 +94,8 @@ jobs:
         with:
           image: ${{ steps.build-image.outputs.image }}
           tags: ${{ steps.build-image.outputs.tags }}
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ env.DEST_REGISTRY_HOST }}
 
       - name: Clean up the subscription
-        env:
-          SMDEV_CONTAINER_OFF: 1
+        if: always()
         run: subscription-manager unregister
