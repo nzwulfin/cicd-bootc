@@ -25,7 +25,7 @@ jobs:
       # SOURCE_REGISTRY_PASSWORD: "${{ secrets.RHT_REG_SVCPASS }}"
 
       # Containerfile to build
-      CONTAINERFILE: Containerfile
+      CONTAINERFILE: "rhel/Containerfile"
 
       # Destination image namespace and name (eg: myrepo/myimage)
       DEST_IMAGE: "${{ github.actor }}/${{github.event.repository.name}}"
