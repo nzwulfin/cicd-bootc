@@ -1,4 +1,13 @@
 # cicd-bootc
+>[!NOTE]
+>Since the publication of [the blog associated with this repo](https://www.redhat.com/en/blog/jumpstart-gitops-image-mode), more examples have been published for various CI/CD systems.
+>[A template for GitHub Actions](https://github.com/redhat-cop/redhat-image-mode-actions) was published you can more easily reuse.
+>If you use a different CI/CD system, we have a [list of exmaples](https://gitlab.com/redhat/cop/rhel/rhel-image-mode-cicd) with other options.
+>
+>Contributions welcome!
+
+
+
 Demo repo for Github Actions based builds of bootc images
 
 For RHEL, this example uses an activation key to get access to a subscription and a service account to get access to the terms based registry images. These are set up as secrets and variables scoped to the repo.You can easily change the names of these in the repo and the workflow file to suit your own standards.
